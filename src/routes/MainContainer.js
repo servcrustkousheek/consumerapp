@@ -1,7 +1,6 @@
 import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {Footer} from './index';
-import {Login} from './index';
 
 const Stack = createNativeStackNavigator();
 
@@ -19,11 +18,9 @@ const MainContainer = () => {
           component={Footer}
           options={{headerShown: false}}
         />
-        <Stack.Screen
-          name="login"
-          component={Login}
-          options={{headerShown: false}}
-        />
+       
+
+    
       </Stack.Navigator>
     </>
   );

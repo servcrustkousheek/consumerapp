@@ -30,6 +30,7 @@ const AuthContainer = () => {
           gestureEnabled: true,
         }}
       />
+      
     </Stack.Navigator>
   );
 };
