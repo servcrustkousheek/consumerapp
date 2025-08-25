@@ -1,6 +1,7 @@
 import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {Footer} from './index';
+import SelectLocation from '../pages/Location/SelectLocation';
 
 const Stack = createNativeStackNavigator();
 
@@ -18,6 +19,12 @@ const MainContainer = () => {
           component={Footer}
           options={{headerShown: false}}
         />
+         <Stack.Screen
+          name="SelectLocation"
+          component={SelectLocation}
+          options={{headerShown: false}}
+        />
+
        
 
     

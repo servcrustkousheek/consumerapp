@@ -1,14 +1,15 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
-
+import {StyleSheet, Text, View} from 'react-native';
+import React from 'react';
+import NotServiceable from '../../pages/Location/NotServiceable';
+ 
 const Orders = () => {
   return (
-    <View>
-      <Text>Orders</Text>
+    <View style={{flex: 1}}>
+      <NotServiceable />
     </View>
-  )
-}
-
-export default Orders
-
-const styles = StyleSheet.create({})
+  );
+};
+ 
+export default Orders;
+ 
+const styles = StyleSheet.create({});

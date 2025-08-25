@@ -1,7 +1,7 @@
-import { View, Text, StyleSheet, Platform } from 'react-native';
-import React, { useState, useEffect } from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Svg, Path, G, SvgUri } from 'react-native-svg';
+import {View, Text, StyleSheet, Platform} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {Svg, Path, G, SvgUri} from 'react-native-svg';
 
 import axios from 'axios';
 import CustomButton from '../../Components/CustomButton';
@@ -10,9 +10,9 @@ import Rewards from './Rewards';
 import DashBoard from './DashBoard';
 import Referrals from './Referrals';
 import Profile from './Profile';
+import Header from '../../Components/Header';
 
 const Tab = createBottomTabNavigator();
-
 
 const ICON_URLS = {
   priceanalysis:
@@ -27,7 +27,7 @@ const ICON_URLS = {
 };
 
 // Custom component that fetches and renders SVG with color override
-const ColorableSvgIcon = ({ url, color, style }) => {
+const ColorableSvgIcon = ({url, color, style}) => {
   const [svgContent, setSvgContent] = useState(null);
 
   useEffect(() => {
@@ -75,15 +75,14 @@ const ColorableSvgIcon = ({ url, color, style }) => {
   );
 };
 
-
-
 const Footer = () => {
   return (
     <>
       <Tab.Navigator
         initialRouteName="dashboard"
-        screenOptions={({ navigation, route }) => ({
-          headerShown: false,
+        screenOptions={({navigation, route}) => ({
+          // headerShown: false,
+          header: () => <Header route={route} navigation={navigation} />,
           tabBarActiveTintColor: '#fff',
           tabBarInactiveTintColor: 'rgba(255,255,255,0.6)',
           tabBarHideOnKeyboard: true,
@@ -104,7 +103,7 @@ const Footer = () => {
           tabBarLabelStyle: {
             fontSize: 12,
             marginTop: Platform.OS === 'ios' ? 3 : 0,
-            marginBottom: Platform.OS === 'ios' ? 0 : 4
+            marginBottom: Platform.OS === 'ios' ? 0 : 4,
           },
         })}>
         <Tab.Screen
@@ -112,11 +111,11 @@ const Footer = () => {
           component={Orders}
           options={{
             title: 'orders',
-            tabBarIcon: ({ focused }) => (
+            tabBarIcon: ({focused}) => (
               <ColorableSvgIcon
                 url={ICON_URLS.priceanalysis}
                 color={focused ? '#fff' : 'rgba(255,255,255,0.6)'}
-                style={{ width: 24, height: 24 }}
+                style={{width: 24, height: 24}}
               />
             ),
           }}
@@ -126,16 +125,15 @@ const Footer = () => {
           component={Rewards}
           options={{
             title: 'rewards',
-            tabBarIcon: ({ focused }) => (
+            tabBarIcon: ({focused}) => (
               <ColorableSvgIcon
                 url={ICON_URLS.b2cleads}
                 color={focused ? '#fff' : 'rgba(255,255,255,0.6)'}
-                style={{ width: 24, height: 24 }}
+                style={{width: 24, height: 24}}
               />
             ),
           }}
         />
-       
 
         <Tab.Screen
           name="dashboard"
@@ -163,11 +161,11 @@ const Footer = () => {
           component={Referrals}
           options={{
             title: 'Track',
-            tabBarIcon: ({ focused }) => (
+            tabBarIcon: ({focused}) => (
               <ColorableSvgIcon
                 url={ICON_URLS.performance}
                 color={focused ? '#fff' : 'rgba(255,255,255,0.6)'}
-                style={{ width: 24, height: 24 }}
+                style={{width: 24, height: 24}}
               />
             ),
           }}
@@ -177,17 +175,16 @@ const Footer = () => {
           component={Profile}
           options={{
             title: 'Track',
-            tabBarIcon: ({ focused }) => (
+            tabBarIcon: ({focused}) => (
               <ColorableSvgIcon
                 url={ICON_URLS.villagefinder}
                 color={focused ? '#fff' : 'rgba(255,255,255,0.6)'}
-                style={{ width: 24, height: 24 }}
+                style={{width: 24, height: 24}}
               />
             ),
           }}
         />
       </Tab.Navigator>
-
     </>
   );
 };

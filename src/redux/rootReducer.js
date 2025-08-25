@@ -2,6 +2,7 @@ import {combineReducers} from 'redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import authReducer from './slices/AuthSlice';
 import {persistReducer} from 'redux-persist';
+import headerReducer from './slices/HeaderSlice';
 
 // ----------------------------------------------------------------------
 export const rootPersistConfig = {
@@ -17,6 +18,7 @@ export const AuthPersistConfig = {
 
 const rootReducer = combineReducers({
   Auth: persistReducer(AuthPersistConfig, authReducer),
+  Header: headerReducer,
 });
 
 export default rootReducer;
