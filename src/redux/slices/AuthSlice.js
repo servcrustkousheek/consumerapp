@@ -362,7 +362,8 @@ export const verifyOTP = (phoneNumber, otp) => async (dispatch, getState) => {
     dispatch(setLoading(true));
     dispatch(clearError());
 
-    const { session } = getState().auth;
+    // Access the Auth state (uppercase A to match your rootReducer)
+    const { session } = getState().Auth;
     
     if (!session) {
       throw new Error('No active session. Please request OTP again.');
@@ -434,8 +435,8 @@ export const resendOTP = (phoneNumber) => async (dispatch, getState) => {
   try {
     console.log('🔄 Resending OTP for:', phoneNumber);
 
-    // Check rate limiting
-    const { otpRateLimit } = getState().auth;
+    // Access the Auth state (uppercase A to match your rootReducer)
+    const { otpRateLimit } = getState().Auth;
     
     if (isOtpRateLimited(otpRateLimit)) {
       const remainingTime = Math.ceil((RATE_LIMIT_DURATION - (Date.now() - otpRateLimit.timestamp)) / 60000);
@@ -449,7 +450,8 @@ export const resendOTP = (phoneNumber) => async (dispatch, getState) => {
     
     if (result.success) {
       // Increase resend timer for subsequent attempts
-      const currentAttempts = getState().auth.resendAttempts || 1;
+      // Access the Auth state (uppercase A to match your rootReducer)
+      const currentAttempts = getState().Auth.resendAttempts || 1;
       dispatch(setResendTimer(currentAttempts * 30)); // 30s, 60s, 90s...
       dispatch(setResendAttempts(currentAttempts + 1));
       
