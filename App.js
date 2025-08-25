@@ -9,9 +9,12 @@ import {PersistGate} from 'redux-persist/integration/react';
 import Toast from 'react-native-toast-message';
 import RootContainer from './src/routes/RootContainer';
 import {persistor, store} from './src/redux/store';
-
+import {Amplify} from 'aws-amplify';
+import { amplifyConfig } from './amplifyconfiguration';
 import {checkAuthState} from './src/redux/slices/AuthSlice';
 
+
+Amplify.configure(amplifyConfig);
 
 // Component to check auth state on app load
 const AuthChecker = ({children}) => {
