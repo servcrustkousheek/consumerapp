@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { BRANDCOLOR, COLORS, C100 } from '../../Utils/Colors';
-import { verifyOTP, resendOTP, clearError, decrementTimer } from '../../redux/slices/AuthSlice';
+import { verifyOTP, resendOTP, clearError, decrementTimer, clearNavigationFlag } from '../../redux/slices/AuthSlice';
 
 const OTPVerification = ({ navigation, route }) => {
   const [otp, setOtp] = useState(['', '', '', '', '']);
@@ -153,6 +153,8 @@ const OTPVerification = ({ navigation, route }) => {
     if (loading) {
       return;
     }
+    // Clear navigation flag when going back
+    dispatch(clearNavigationFlag());
     navigation.goBack();
   };
 
@@ -160,6 +162,8 @@ const OTPVerification = ({ navigation, route }) => {
     if (loading) {
       return;
     }
+    // Clear navigation flag when editing phone number
+    dispatch(clearNavigationFlag());
     navigation.goBack();
   };
 

@@ -52,6 +52,7 @@ const initialState = {
   resendTimer: 0,
   resendAttempts: 1,
   canResend: false,
+  shouldNavigateToOTP: false,
   otpRateLimit: {
     count: 0,
     timestamp: null,
@@ -81,6 +82,7 @@ const authSlice = createSlice({
     },
     setSession: (state, action) => {
       state.session = action.payload;
+      state.shouldNavigateToOTP = true;
     },
     setResendTimer: (state, action) => {
       state.resendTimer = action.payload;
@@ -119,6 +121,10 @@ const authSlice = createSlice({
       state.resendTimer = 0;
       state.resendAttempts = 1;
       state.canResend = false;
+      state.shouldNavigateToOTP = false;
+    },
+    clearNavigationFlag: (state) => {
+      state.shouldNavigateToOTP = false;
     },
     resetAuthFlow: (state) => {
       state.session = null;
@@ -127,6 +133,7 @@ const authSlice = createSlice({
       state.error = null;
       state.loading = false;
       state.canResend = false;
+      state.shouldNavigateToOTP = false;
     },
   },
 });
@@ -147,6 +154,7 @@ export const {
   loginSuccess,
   logout,
   resetAuthFlow,
+  clearNavigationFlag,
 } = authSlice.actions;
 
 // Rate limiting helper functions

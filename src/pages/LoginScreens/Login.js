@@ -14,14 +14,14 @@ import { SvgUri } from 'react-native-svg';
 import { useDispatch, useSelector } from 'react-redux';
 import { BRANDCOLOR, COLORS, C100 } from '../../Utils/Colors';
 import { SCREEN_WIDTH } from '../../Utils/Dimensions';
-import { sendOTP, clearError } from '../../redux/slices/AuthSlice';
+import { sendOTP, clearError, clearNavigationFlag } from '../../redux/slices/AuthSlice';
 
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   
   const dispatch = useDispatch();
-  const { loading, error, session } = useSelector(state => state.Auth);
+  const { loading, error, shouldNavigateToOTP } = useSelector(state => state.Auth);
 
   // Handle error display
   useEffect(() => {
@@ -31,18 +31,21 @@ const Login = ({ navigation }) => {
     }
   }, [error, dispatch]);
 
-  // Navigate to OTP screen when session is established
+  // Navigate to OTP screen when OTP is successfully sent
   useEffect(() => {
-    if (session) {
-      const fullPhoneNumber = phoneNumber.startsWith('+91') 
-        ? phoneNumber 
-        : `+91${phoneNumber}`;
+    if (shouldNavigateToOTP && phoneNumber && phoneNumber.length === 10) {
+      const fullPhoneNumber = `+91${phoneNumber}`;
+      
+      console.log('✅ Navigating to OTP verification for:', fullPhoneNumber);
       
       navigation.navigate('OTPVerification', { 
         phoneNumber: fullPhoneNumber 
       });
+      
+      // Clear the navigation flag
+      dispatch(clearNavigationFlag());
     }
-  }, [session, phoneNumber, navigation]);
+  }, [shouldNavigateToOTP, phoneNumber, navigation, dispatch]);
 
   // Validate Indian phone number
   const isValidIndianPhoneNumber = (phone) => {
