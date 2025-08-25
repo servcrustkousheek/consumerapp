@@ -167,9 +167,9 @@ const Login = ({ navigation }) => {
             </Text>
           </TouchableOpacity>
 
-          {/* Info text */}
+          {/* Info text - UPDATED */}
           <Text style={styles.infoText}>
-            We'll send you a 5-digit verification code to verify your number
+            We'll send you a 6-digit verification code to verify your number
           </Text>
         </View>
       </View>

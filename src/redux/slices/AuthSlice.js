@@ -350,13 +350,13 @@ export const sendOTP = (phoneNumber) => async (dispatch, getState) => {
   }
 };
 
-// Verify OTP function
+// Verify OTP function - UPDATED FOR 6 DIGITS
 export const verifyOTP = (phoneNumber, otp) => async (dispatch, getState) => {
   try {
     console.log('🔐 Starting OTP verification for:', phoneNumber);
 
-    if (otp.length !== 5) {
-      throw new Error('OTP must be 5 digits long');
+    if (otp.length !== 6) { // CHANGED FROM 5 TO 6
+      throw new Error('OTP must be 6 digits long'); // UPDATED ERROR MESSAGE
     }
 
     dispatch(setLoading(true));

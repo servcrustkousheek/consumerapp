@@ -15,7 +15,7 @@ import { BRANDCOLOR, COLORS, C100 } from '../../Utils/Colors';
 import { verifyOTP, resendOTP, clearError, decrementTimer, clearNavigationFlag } from '../../redux/slices/AuthSlice';
 
 const OTPVerification = ({ navigation, route }) => {
-  const [otp, setOtp] = useState(['', '', '', '', '']);
+  const [otp, setOtp] = useState(['', '', '', '', '', '']); // Changed to 6 fields
   const inputs = useRef([]);
   
   const dispatch = useDispatch();
@@ -82,12 +82,12 @@ const OTPVerification = ({ navigation, route }) => {
     setOtp(newOtp);
 
     // Auto focus next input
-    if (numericText && index < 4) {
+    if (numericText && index < 5) { // Changed from 4 to 5
       inputs.current[index + 1]?.focus();
     }
     
     // Auto submit when OTP is complete
-    if (numericText && index === 4) {
+    if (numericText && index === 5) { // Changed from 4 to 5
       const completeOtp = [...newOtp];
       if (completeOtp.every(digit => digit !== '')) {
         setTimeout(() => {
@@ -112,8 +112,8 @@ const OTPVerification = ({ navigation, route }) => {
   const handleVerifyOtp = async (otpCode = null) => {
     const otpToVerify = otpCode || otp.join('');
     
-    if (otpToVerify.length !== 5) {
-      Alert.alert('Error', 'Please enter complete 5-digit OTP');
+    if (otpToVerify.length !== 6) { // Changed from 5 to 6
+      Alert.alert('Error', 'Please enter complete 6-digit OTP'); // Updated message
       return;
     }
 
@@ -124,7 +124,7 @@ const OTPVerification = ({ navigation, route }) => {
     if (!result.success) {
       console.log('❌ OTP verification failed, clearing inputs');
       // Clear OTP on error
-      setOtp(['', '', '', '', '']);
+      setOtp(['', '', '', '', '', '']); // Changed to 6 fields
       inputs.current[0]?.focus();
     }
     // Success navigation is handled by useEffect when isAuthenticated becomes true
@@ -138,7 +138,7 @@ const OTPVerification = ({ navigation, route }) => {
     console.log('🔄 Resending OTP for:', phoneNumber);
     
     // Clear current OTP
-    setOtp(['', '', '', '', '']);
+    setOtp(['', '', '', '', '', '']); // Changed to 6 fields
     inputs.current[0]?.focus();
     
     const result = await dispatch(resendOTP(phoneNumber));
@@ -213,7 +213,7 @@ const OTPVerification = ({ navigation, route }) => {
         <Text style={styles.title}>Verification Code</Text>
         <View style={styles.subtitleContainer}>
           <Text style={styles.subtitle}>
-            We sent a 5-digit code to{' '}
+            We sent a 6-digit code to{' '} {/* Updated text */}
             <Text style={styles.phoneNumber}>{maskPhoneNumber(phoneNumber)}</Text>
           </Text>
           <TouchableOpacity 
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   otpInput: {
-    width: 55,
+    width: 50, // Slightly reduced width to fit 6 inputs
     height: 55,
     borderWidth: 2,
     borderColor: '#E0E0E0',
