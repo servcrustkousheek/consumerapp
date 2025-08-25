@@ -10,7 +10,7 @@ import Toast from 'react-native-toast-message';
 import RootContainer from './src/routes/RootContainer';
 import {persistor, store} from './src/redux/store';
 import {Amplify} from 'aws-amplify';
-import { amplifyConfig } from './amplifyconfiguration';
+import {amplifyConfig} from './amplifyconfiguration.js'
 import {checkAuthState} from './src/redux/slices/AuthSlice';
 
 

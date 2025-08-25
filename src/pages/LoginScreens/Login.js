@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,35 +21,84 @@ const Login = ({ navigation }) => {
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   
   const dispatch = useDispatch();
-  const { loading, error } = useSelector(state => state.Auth);
+  const { loading, error, session } = useSelector(state => state.Auth);
 
-  React.useEffect(() => {
+  // Handle error display
+  useEffect(() => {
     if (error) {
       Alert.alert('Error', error);
       dispatch(clearError());
     }
   }, [error, dispatch]);
 
+  // Navigate to OTP screen when session is established
+  useEffect(() => {
+    if (session) {
+      const fullPhoneNumber = phoneNumber.startsWith('+91') 
+        ? phoneNumber 
+        : `+91${phoneNumber}`;
+      
+      navigation.navigate('OTPVerification', { 
+        phoneNumber: fullPhoneNumber 
+      });
+    }
+  }, [session, phoneNumber, navigation]);
+
+  // Validate Indian phone number
+  const isValidIndianPhoneNumber = (phone) => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    const phoneRegex = /^[6-9]\d{9}$/; // 10-digit numbers starting with 6-9
+    return phoneRegex.test(cleanPhone);
+  };
+
   const handlePhoneNumberChange = (text) => {
     // Remove any non-digit characters
     const cleanText = text.replace(/[^0-9]/g, '');
-    setPhoneNumber(cleanText);
-    setIsButtonDisabled(cleanText.length < 10);
+    
+    // Limit to 10 digits for Indian numbers
+    const finalText = cleanText.slice(0, 10);
+    setPhoneNumber(finalText);
+    
+    // Validate button state
+    const isValid = finalText.length === 10 && isValidIndianPhoneNumber(finalText);
+    setIsButtonDisabled(!isValid);
   };
 
-  const handleVerifyNumber = async () => {
-    if (phoneNumber.length >= 10) {
-      const fullPhoneNumber = `+91${phoneNumber}`;
-      const result = await dispatch(sendOTP(fullPhoneNumber));
-      
-      if (result.success) {
-        navigation.navigate('OTPVerification', { 
-          phoneNumber: fullPhoneNumber 
-        });
-      }
-    } else {
+  const handleSendOTP = async () => {
+    if (!phoneNumber || phoneNumber.length !== 10) {
       Alert.alert('Error', 'Please enter a valid 10-digit mobile number');
+      return;
     }
+
+    // Final validation
+    if (!isValidIndianPhoneNumber(phoneNumber)) {
+      Alert.alert('Error', 'Please enter a valid Indian phone number (starting with 6, 7, 8, or 9)');
+      return;
+    }
+
+    // Format phone number to +91 format
+    const fullPhoneNumber = `+91${phoneNumber}`;
+    
+    console.log('🚀 Starting authentication for:', fullPhoneNumber);
+    
+    const result = await dispatch(sendOTP(fullPhoneNumber));
+    
+    if (result.success) {
+      console.log('✅ OTP process initiated successfully');
+      // Show success message based on user type
+      if (result.isNewUser) {
+        Alert.alert('Welcome!', result.message || 'Account created! Please verify your phone number.');
+      }
+      // Navigation to OTP screen is handled automatically by useEffect
+    } else {
+      console.error('❌ OTP send failed:', result.error);
+      // Error is already handled by Redux and shown in useEffect
+    }
+  };
+
+  // Check if phone number is valid and complete for showing checkmark
+  const isPhoneNumberValid = () => {
+    return phoneNumber.length === 10 && isValidIndianPhoneNumber(phoneNumber);
   };
 
   return (
@@ -79,33 +128,46 @@ const Login = ({ navigation }) => {
             <View style={styles.countryCode}>
               <Text style={styles.countryCodeText}>+91</Text>
             </View>
-            <TextInput
-              style={styles.phoneInput}
-              value={phoneNumber}
-              onChangeText={handlePhoneNumberChange}
-              placeholder="Enter your mobile number"
-              placeholderTextColor="#999"
-              keyboardType="numeric"
-              maxLength={10}
-              editable={!loading}
-            />
+            <View style={styles.phoneInputWrapper}>
+              <TextInput
+                style={styles.phoneInput}
+                value={phoneNumber}
+                onChangeText={handlePhoneNumberChange}
+                placeholder="Enter your mobile number"
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+                maxLength={10}
+                editable={!loading}
+                autoFocus={!loading}
+              />
+              {isPhoneNumberValid() && (
+                <View style={styles.verifiedIcon}>
+                  <Text style={styles.checkMark}>✓</Text>
+                </View>
+              )}
+            </View>
           </View>
 
           <TouchableOpacity
             style={[
-              styles.verifyButton,
-              (isButtonDisabled || loading) && styles.verifyButtonDisabled
+              styles.sendOTPButton,
+              (isButtonDisabled || loading) && styles.sendOTPButtonDisabled
             ]}
-            onPress={handleVerifyNumber}
+            onPress={handleSendOTP}
             disabled={isButtonDisabled || loading}
           >
             <Text style={[
-              styles.verifyButtonText,
-              (isButtonDisabled || loading) && styles.verifyButtonTextDisabled
+              styles.sendOTPButtonText,
+              (isButtonDisabled || loading) && styles.sendOTPButtonTextDisabled
             ]}>
-              {loading ? 'Sending OTP...' : 'Verify Number'}
+              {loading ? 'Sending OTP...' : 'Send OTP'}
             </Text>
           </TouchableOpacity>
+
+          {/* Info text */}
+          <Text style={styles.infoText}>
+            We'll send you a 5-digit verification code to verify your number
+          </Text>
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -171,31 +233,68 @@ const styles = StyleSheet.create({
     color: C100,
     textAlign: 'center',
   },
+  phoneInputWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    paddingRight: 16,
+  },
   phoneInput: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
     paddingHorizontal: 16,
     paddingVertical: 16,
-    borderRadius: 12,
     fontSize: 16,
     color: C100,
   },
-  verifyButton: {
+  verifiedIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkMark: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  sendOTPButton: {
     backgroundColor: BRANDCOLOR,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
+    shadowColor: BRANDCOLOR,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    marginBottom: 20,
   },
-  verifyButtonDisabled: {
+  sendOTPButtonDisabled: {
     backgroundColor: '#E0E0E0',
+    shadowOpacity: 0,
+    elevation: 0,
   },
-  verifyButtonText: {
+  sendOTPButtonText: {
     color: COLORS.white,
     fontSize: 16,
     fontWeight: '600',
   },
-  verifyButtonTextDisabled: {
+  sendOTPButtonTextDisabled: {
     color: '#999',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 20,
   },
 });
 
