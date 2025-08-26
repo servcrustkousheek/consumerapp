@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { signIn, signUp, confirmSignIn, getCurrentUser } from 'aws-amplify/auth';
+import { signIn, signUp, confirmSignIn, getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import 'react-native-get-random-values';
 
 // Constants for rate limiting
@@ -42,6 +42,49 @@ const normalizePhoneNumber = (phone) => {
   return `+91${cleanPhone}`;
 };
 
+// Helper function to get and print tokens
+const getAndPrintTokens = async () => {
+  try {
+    const session = await fetchAuthSession();
+    console.log('=== AUTHENTICATION TOKENS ===');
+    
+    if (session.tokens) {
+      // Access Token
+      if (session.tokens.accessToken) {
+        console.log('🔑 ACCESS TOKEN:');
+        console.log(session.tokens.accessToken.toString());
+        console.log('');
+      }
+      
+      // ID Token
+      if (session.tokens.idToken) {
+        console.log('🆔 ID TOKEN:');
+        console.log(session.tokens.idToken.toString());
+        console.log('');
+      }
+      
+      // Additional token information
+      console.log('📋 TOKEN DETAILS:');
+      console.log('Access Token Payload:', session.tokens.accessToken?.payload);
+      console.log('ID Token Payload:', session.tokens.idToken?.payload);
+      console.log('==============================');
+      
+      return {
+        accessToken: session.tokens.accessToken?.toString(),
+        idToken: session.tokens.idToken?.toString(),
+        accessTokenPayload: session.tokens.accessToken?.payload,
+        idTokenPayload: session.tokens.idToken?.payload
+      };
+    } else {
+      console.log('❌ No tokens found in session');
+      return null;
+    }
+  } catch (error) {
+    console.error('❌ Error fetching tokens:', error);
+    return null;
+  }
+};
+
 const initialState = {
   isAuthenticated: false,
   user: null,
@@ -53,6 +96,7 @@ const initialState = {
   resendAttempts: 1,
   canResend: false,
   shouldNavigateToOTP: false,
+  tokens: null, // Added tokens to state
   otpRateLimit: {
     count: 0,
     timestamp: null,
@@ -84,6 +128,9 @@ const authSlice = createSlice({
       state.session = action.payload;
       state.shouldNavigateToOTP = true;
     },
+    setTokens: (state, action) => {
+      state.tokens = action.payload;
+    },
     setResendTimer: (state, action) => {
       state.resendTimer = action.payload;
       state.canResend = action.payload === 0;
@@ -107,6 +154,7 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.user = action.payload.user;
       state.phoneNumber = action.payload.phoneNumber;
+      state.tokens = action.payload.tokens; // Store tokens in state
       state.loading = false;
       state.error = null;
       state.session = null;
@@ -115,6 +163,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.user = null;
       state.phoneNumber = null;
+      state.tokens = null;
       state.loading = false;
       state.error = null;
       state.session = null;
@@ -146,6 +195,7 @@ export const {
   clearError,
   setPhoneNumber,
   setSession,
+  setTokens,
   setResendTimer,
   decrementTimer,
   setResendAttempts,
@@ -249,6 +299,43 @@ export const sendOTP = (phoneNumber) => async (dispatch, getState) => {
     dispatch(setLoading(true));
     dispatch(clearError());
 
+    // Check if user is already authenticated
+    try {
+      const currentUser = await getCurrentUser();
+      if (currentUser) {
+        console.log('⚠️ User already authenticated:', currentUser.username);
+        
+        // If the authenticated user matches the phone number, return success
+        const normalizedPhone = normalizePhoneNumber(phoneNumber);
+        if (currentUser.username === normalizedPhone) {
+          console.log('✅ User already authenticated with same phone number');
+          
+          // Get and print tokens
+          const tokens = await getAndPrintTokens();
+          
+          const userData = {
+            user: {
+              id: currentUser.userId,
+              username: currentUser.username,
+              phoneNumber: normalizedPhone,
+            },
+            phoneNumber: normalizedPhone,
+            tokens: tokens,
+          };
+
+          dispatch(loginSuccess(userData));
+          dispatch(stopLoading());
+          return { success: true, message: 'Already authenticated', isNewUser: false };
+        } else {
+          // Different phone number, need to sign out first
+          console.log('🔄 Different phone number, signing out current user');
+          await dispatch(logoutUser());
+        }
+      }
+    } catch (authCheckError) {
+      console.log('📱 No current user found, proceeding with sign in');
+    }
+
     // Load and check rate limits
     const currentOtpRateLimit = await loadOtpRateLimit();
     dispatch(setOtpRateLimit(currentOtpRateLimit));
@@ -330,7 +417,38 @@ export const sendOTP = (phoneNumber) => async (dispatch, getState) => {
           throw new Error('Failed to initiate verification for new user');
         }
         
-      } else if (signInError.name === 'UsernameExistsException') {
+      } else if (signInError.name === 'UserAlreadyAuthenticatedException') {
+        console.log('🔄 User already authenticated, handling existing session');
+        
+        try {
+          const currentUser = await getCurrentUser();
+          const tokens = await getAndPrintTokens();
+          
+          const userData = {
+            user: {
+              id: currentUser.userId,
+              username: currentUser.username,
+              phoneNumber: normalizedPhone,
+            },
+            phoneNumber: normalizedPhone,
+            tokens: tokens,
+          };
+
+          await AsyncStorage.setItem('userData', JSON.stringify(userData));
+          await AsyncStorage.setItem('userToken', 'authenticated');
+          
+          dispatch(loginSuccess(userData));
+          dispatch(stopLoading());
+          return { success: true, message: 'Already authenticated', isNewUser: false };
+          
+      } catch (error) {
+        console.error('Error handling existing session:', error);
+        throw new Error('Failed to handle existing session');
+      }
+      } 
+
+    
+      else if (signInError.name === 'UsernameExistsException') {
         console.log('🔄 Username exists, retrying sign in');
         return await dispatch(sendOTP(normalizedPhone));
         
@@ -384,6 +502,9 @@ export const verifyOTP = (phoneNumber, otp) => async (dispatch, getState) => {
         // Get current user details
         const currentUser = await getCurrentUser();
         console.log('Current user:', currentUser);
+        
+        // Get and print tokens
+        const tokens = await getAndPrintTokens();
 
         const userData = {
           user: {
@@ -392,9 +513,10 @@ export const verifyOTP = (phoneNumber, otp) => async (dispatch, getState) => {
             phoneNumber: phoneNumber,
           },
           phoneNumber: phoneNumber,
+          tokens: tokens, // Include tokens in userData
         };
 
-        // Save user data
+        // Save user data (including tokens)
         await AsyncStorage.setItem('userData', JSON.stringify(userData));
         await AsyncStorage.setItem('userToken', 'authenticated');
 
@@ -491,6 +613,14 @@ export const checkAuthState = () => async (dispatch) => {
         const parsedUserData = JSON.parse(userData);
         
         console.log('✅ Existing session found, user authenticated');
+        
+        // Get fresh tokens and print them
+        const tokens = await getAndPrintTokens();
+        if (tokens) {
+          parsedUserData.tokens = tokens;
+          dispatch(setTokens(tokens));
+        }
+        
         dispatch(loginSuccess(parsedUserData));
       } catch (authError) {
         console.log('❌ Invalid session found, clearing data');
@@ -507,9 +637,29 @@ export const checkAuthState = () => async (dispatch) => {
   }
 };
 
+// Function to manually get and print current tokens (can be called anytime)
+export const printCurrentTokens = () => async (dispatch) => {
+  try {
+    const tokens = await getAndPrintTokens();
+    if (tokens) {
+      dispatch(setTokens(tokens));
+      return tokens;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error printing current tokens:', error);
+    return null;
+  }
+};
+
 // Logout function
 export const logoutUser = () => async (dispatch) => {
   try {
+    // Sign out from Amplify first
+    const { signOut } = await import('aws-amplify/auth');
+    await signOut();
+    console.log('✅ Signed out from Amplify');
+    
     // Clear local storage
     await AsyncStorage.removeItem('userToken');
     await AsyncStorage.removeItem('userData');
@@ -520,6 +670,18 @@ export const logoutUser = () => async (dispatch) => {
     return { success: true };
   } catch (error) {
     console.error('Error logging out:', error);
+    
+    // Even if signOut fails, clear local data
+    try {
+      await AsyncStorage.removeItem('userToken');
+      await AsyncStorage.removeItem('userData');
+      await AsyncStorage.removeItem('SESSION_ID');
+      await AsyncStorage.removeItem('@user_status');
+      dispatch(logout());
+    } catch (storageError) {
+      console.error('Error clearing storage:', storageError);
+    }
+    
     return { success: false, error: error.message };
   }
 };
