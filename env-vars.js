@@ -37,7 +37,7 @@ const ENV = {
   },
 };
 
-const CURRENT_ENV = 'PRODUCTION';
+const CURRENT_ENV = 'STAGING';
 
 const currentEnv = ENV[CURRENT_ENV];
 
