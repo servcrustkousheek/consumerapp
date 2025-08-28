@@ -11,7 +11,7 @@ import {
 import Svg, {Path, Rect, Circle} from 'react-native-svg';
 import {SCREEN_HEIGHT} from '../../Utils/Dimensions';
 import {useNavigation} from '@react-navigation/native';
-
+import {FilterIcon} from '../../Utils/Icons';
 const ordersData = [
   {
     id: 'TS18.13-2324-68',
@@ -159,18 +159,6 @@ const SearchIcon = ({size = 20, color = '#8B8B99'}) => (
       strokeLinecap="round"
       strokeLinejoin="round"
     />
-  </Svg>
-);
-
-// Minimalist Filter (3 stacked lines) Icon SVG component
-const FilterIcon = ({size = 20, color = '#8B8B99'}) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    {/* Top Line - Full width */}
-    <Path d="M3 6h18" stroke={color} strokeWidth={2} strokeLinecap="round" />
-    {/* Middle Line - Medium width */}
-    <Path d="M6 12h12" stroke={color} strokeWidth={2} strokeLinecap="round" />
-    {/* Bottom Line - Shortest width */}
-    <Path d="M9 18h6" stroke={color} strokeWidth={2} strokeLinecap="round" />
   </Svg>
 );
 
