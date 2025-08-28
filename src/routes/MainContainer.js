@@ -7,6 +7,9 @@ import FeedbackPage from '../pages/Orders/FeedbackPage';
 import OrderDetails from '../pages/Orders/OrderDetails';
 import FilterOrders from '../pages/Orders/FilterOrders';
 import CancelOrder from '../pages/Orders/CancelOrder';
+import OrderDetailsCheckout from '../pages/Dashboard/OrderDetailsCheckout';
+import PaymentFailed from '../pages/Payment/PaymentFailed';
+import PaymentSuccess from '../pages/Payment/PaymentSuccess';
 
 const Stack = createNativeStackNavigator();
 
@@ -52,6 +55,21 @@ const MainContainer = () => {
         <Stack.Screen
           name="CancelOrder"
           component={CancelOrder}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="OrderDetailsCheckout"
+          component={OrderDetailsCheckout}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="PaymentFailed"
+          component={PaymentFailed}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="PaymentSuccess"
+          component={PaymentSuccess}
           options={{headerShown: false}}
         />
       </Stack.Navigator>

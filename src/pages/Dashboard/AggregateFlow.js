@@ -47,7 +47,12 @@ const AggregateFlow = ({visible, onClose, selectedAggregate}) => {
           <TouchableOpacity
             key={option.id}
             style={[styles.optionItem, isSelected && styles.selectedOption]}
-            onPress={() => setSelectedTyreType(option.id)}>
+            onPress={() => {
+              setSelectedTyreType(option.id);
+              navigation.navigate('OrderDetailsCheckout', {
+                category: 'Aggregate',
+              });
+            }}>
             <View style={styles.optionContent}>
               <View style={styles.optionMain}>
                 <Text

@@ -151,7 +151,8 @@ const BricksFlow = ({visible, onClose, selectedBrick}) => {
       'Success',
       `Proceeding to checkout with ${selectedQuantity} pieces`,
     );
-    onClose();
+    // onClose();
+    navigation.navigate('OrderDetailsCheckout', {category: 'Bricks'});
   };
 
   const renderLocationSection = () => {

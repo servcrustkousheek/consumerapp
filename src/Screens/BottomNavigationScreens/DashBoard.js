@@ -25,11 +25,26 @@ import RMCComponent from '../../pages/Dashboard/RMCComponent';
 import BricksComponent from '../../pages/Dashboard/BricksComponent';
 import AggregateFlow from '../../pages/Dashboard/AggregateFlow';
 import BricksFlow from '../../pages/Dashboard/BricksFlow';
-
+import {SvgUri} from 'react-native-svg';
+import {ColorableSvgIcon, FilterIcon} from '../../Utils/Icons';
+const searchIcon =
+  'https://d3b1cj4ht2fm8t.cloudfront.net/staging/Consumer_App_Final/search.svg';
 const categories = [
-  {id: '1', name: 'Aggregates', icon: 'IconPlaceholder1'},
-  {id: '2', name: 'Bricks', icon: 'IconPlaceholder2'},
-  {id: '3', name: 'RMC', icon: 'IconPlaceholder3'},
+  {
+    id: '1',
+    name: 'Aggregates',
+    icon: 'https://d3b1cj4ht2fm8t.cloudfront.net/staging/Consumer_App_Final/aggregates.svg',
+  },
+  {
+    id: '2',
+    name: 'Bricks',
+    icon: 'https://d3b1cj4ht2fm8t.cloudfront.net/staging/Consumer_App_Final/bricks.svg',
+  },
+  {
+    id: '3',
+    name: 'RMC',
+    icon: 'https://d3b1cj4ht2fm8t.cloudfront.net/staging/Consumer_App_Final/rmc.svg',
+  },
 ];
 
 const Dashboard = () => {
@@ -170,30 +185,27 @@ const Dashboard = () => {
       <ScrollView
         style={styles.container}
         contentContainerStyle={{paddingBottom: 30}}>
-        <TouchableOpacity
-          onPress={() => {
-            setShowAggregateModal(true);
-          }}>
-          <Text>Hello</Text>
-        </TouchableOpacity>
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <TextInput
-            placeholder="Search Materials..."
-            style={styles.searchInput}
-            placeholderTextColor="#999"
-            value={searchText}
-            onChangeText={setSearchText}
-          />
+          <View style={styles.searchBox}>
+            <SvgUri uri={searchIcon} style={styles.searchIcon} />
+            <TextInput
+              placeholder="Search Materials..."
+              style={styles.searchInput}
+              placeholderTextColor="#999"
+              value={searchText}
+              onChangeText={setSearchText}
+            />
+          </View>
           <TouchableOpacity
             style={styles.filterButton}
             onPress={handleFilterPress}>
-            <View style={styles.iconPlaceholder} />
+            <FilterIcon />
           </TouchableOpacity>
         </View>
 
         {/* Discount Banner */}
-        <TouchableOpacity activeOpacity={0.8} style={styles.bannerContainer}>
+        {/* <TouchableOpacity activeOpacity={0.8} style={styles.bannerContainer}>
           <ImageBackground
             source={{
               uri: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
@@ -206,7 +218,7 @@ const Dashboard = () => {
             </View>
             <Text style={styles.bannerLabel}>Special for you</Text>
           </ImageBackground>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         {/* Categories */}
         <View style={styles.section}>
@@ -226,7 +238,11 @@ const Dashboard = () => {
                     styles.categoryIcon,
                     selectedCategory === cat.id && styles.categoryIconSelected,
                   ]}>
-                  <View style={styles.iconPlaceholder} />
+                  <ColorableSvgIcon
+                    url={cat.icon}
+                    color={selectedCategory === cat.id ? 'white' : '#148B7E'} // Set active/inactive color
+                    style={{width: 35, height: 35}}
+                  />
                 </View>
                 <Text
                   style={[
@@ -278,17 +294,32 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 20,
   },
-  searchInput: {
+
+  searchBox: {
     flex: 1,
-    height: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#f2f2f2',
     borderRadius: 12,
-    paddingHorizontal: 15,
+    paddingHorizontal: 10,
+    height: 44,
+  },
+
+  searchIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
+  },
+
+  searchInput: {
+    flex: 1,
     fontSize: 16,
     color: '#333',
   },
+
   filterButton: {
     width: 44,
     height: 44,
@@ -298,11 +329,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   iconPlaceholder: {
     width: 24,
     height: 24,
     backgroundColor: '#ccc',
     borderRadius: 4,
+    borderWidth: 1,
   },
   bannerContainer: {
     height: 160,
@@ -370,6 +403,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
+    borderWidth: 2,
+    borderColor: '#16968b',
   },
   categoryIconSelected: {
     backgroundColor: '#16968b',

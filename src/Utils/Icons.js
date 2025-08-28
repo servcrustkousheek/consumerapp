@@ -1,6 +1,14 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, TouchableOpacity, View} from 'react-native';
-import Svg, {Path, Rect, Circle, Line, Polygon, Text} from 'react-native-svg';
+import Svg, {
+  Path,
+  Rect,
+  Circle,
+  Line,
+  Polygon,
+  Text,
+  G,
+} from 'react-native-svg';
 
 export const DeleteIcon = ({width = 24, height = 24, color = 'red'}) => (
   <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
@@ -260,3 +268,49 @@ export const CancelIcon = () => (
     />
   </Svg>
 );
+
+export const FilterIcon = ({size = 20, color = '#8B8B99'}) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    {/* Top Line - Full width */}
+    <Path d="M3 6h18" stroke={color} strokeWidth={2} strokeLinecap="round" />
+    {/* Middle Line - Medium width */}
+    <Path d="M6 12h12" stroke={color} strokeWidth={2} strokeLinecap="round" />
+    {/* Bottom Line - Shortest width */}
+    <Path d="M9 18h6" stroke={color} strokeWidth={2} strokeLinecap="round" />
+  </Svg>
+);
+
+export const ColorableSvgIcon = ({url, color, style}) => {
+  const [svgContent, setSvgContent] = useState(null);
+
+  useEffect(() => {
+    fetch(url)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.text();
+      })
+      .then(data => setSvgContent(data))
+      .catch(console.error);
+  }, [url]);
+
+  if (!svgContent) return null;
+
+  const pathMatch = svgContent.match(/<path[^>]*d="([^"]*)"[^>]*>/g);
+  const viewBoxMatch = svgContent.match(/viewBox="([^"]*)"/);
+  const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24';
+
+  if (!pathMatch) return null;
+
+  return (
+    <Svg width={style.width} height={style.height} viewBox={viewBox}>
+      <G fill={color}>
+        {pathMatch.map((p, i) => {
+          const d = p.match(/d="([^"]*)"/)[1];
+          return <Path key={i} d={d} fill={color} />;
+        })}
+      </G>
+    </Svg>
+  );
+};
