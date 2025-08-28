@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -10,18 +10,24 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { SvgUri } from 'react-native-svg';
-import { useDispatch, useSelector } from 'react-redux';
-import { BRANDCOLOR, COLORS, C100 } from '../../Utils/Colors';
-import { SCREEN_WIDTH } from '../../Utils/Dimensions';
-import { sendOTP, clearError, clearNavigationFlag } from '../../redux/slices/AuthSlice';
+import {SvgUri} from 'react-native-svg';
+import {useDispatch, useSelector} from 'react-redux';
+import {BRANDCOLOR, COLORS, C100} from '../../Utils/Colors';
+import {SCREEN_WIDTH} from '../../Utils/Dimensions';
+import {
+  sendOTP,
+  clearError,
+  clearNavigationFlag,
+} from '../../redux/slices/AuthSlice';
 
-const Login = ({ navigation }) => {
+const Login = ({navigation}) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-  
+
   const dispatch = useDispatch();
-  const { loading, error, shouldNavigateToOTP } = useSelector(state => state.Auth);
+  const {loading, error, shouldNavigateToOTP} = useSelector(
+    state => state.Auth,
+  );
 
   // Handle error display
   useEffect(() => {
@@ -35,35 +41,36 @@ const Login = ({ navigation }) => {
   useEffect(() => {
     if (shouldNavigateToOTP && phoneNumber && phoneNumber.length === 10) {
       const fullPhoneNumber = `+91${phoneNumber}`;
-      
+
       console.log('✅ Navigating to OTP verification for:', fullPhoneNumber);
-      
-      navigation.navigate('OTPVerification', { 
-        phoneNumber: fullPhoneNumber 
+
+      navigation.navigate('OTPVerification', {
+        phoneNumber: fullPhoneNumber,
       });
-      
+
       // Clear the navigation flag
       dispatch(clearNavigationFlag());
     }
   }, [shouldNavigateToOTP, phoneNumber, navigation, dispatch]);
 
   // Validate Indian phone number
-  const isValidIndianPhoneNumber = (phone) => {
+  const isValidIndianPhoneNumber = phone => {
     const cleanPhone = phone.replace(/\D/g, '');
     const phoneRegex = /^[6-9]\d{9}$/; // 10-digit numbers starting with 6-9
     return phoneRegex.test(cleanPhone);
   };
 
-  const handlePhoneNumberChange = (text) => {
+  const handlePhoneNumberChange = text => {
     // Remove any non-digit characters
     const cleanText = text.replace(/[^0-9]/g, '');
-    
+
     // Limit to 10 digits for Indian numbers
     const finalText = cleanText.slice(0, 10);
     setPhoneNumber(finalText);
-    
+
     // Validate button state
-    const isValid = finalText.length === 10 && isValidIndianPhoneNumber(finalText);
+    const isValid =
+      finalText.length === 10 && isValidIndianPhoneNumber(finalText);
     setIsButtonDisabled(!isValid);
   };
 
@@ -75,22 +82,28 @@ const Login = ({ navigation }) => {
 
     // Final validation
     if (!isValidIndianPhoneNumber(phoneNumber)) {
-      Alert.alert('Error', 'Please enter a valid Indian phone number (starting with 6, 7, 8, or 9)');
+      Alert.alert(
+        'Error',
+        'Please enter a valid Indian phone number (starting with 6, 7, 8, or 9)',
+      );
       return;
     }
 
     // Format phone number to +91 format
     const fullPhoneNumber = `+91${phoneNumber}`;
-    
+
     console.log('🚀 Starting authentication for:', fullPhoneNumber);
-    
+
     const result = await dispatch(sendOTP(fullPhoneNumber));
-    
+
     if (result.success) {
       console.log('✅ OTP process initiated successfully');
       // Show success message based on user type
       if (result.isNewUser) {
-        Alert.alert('Welcome!', result.message || 'Account created! Please verify your phone number.');
+        Alert.alert(
+          'Welcome!',
+          result.message || 'Account created! Please verify your phone number.',
+        );
       }
       // Navigation to OTP screen is handled automatically by useEffect
     } else {
@@ -105,12 +118,11 @@ const Login = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <StatusBar backgroundColor={BRANDCOLOR} barStyle="light-content" />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <SvgUri
@@ -118,7 +130,7 @@ const Login = ({ navigation }) => {
           width={120}
           height={80}
         />
-        <Text style={styles.appTitle}>ServCrust</Text>
+        {/* <Text style={styles.appTitle}>ServCrust</Text> */}
         <Text style={styles.appSubtitle}>Consumer App</Text>
       </View>
 
@@ -126,7 +138,7 @@ const Login = ({ navigation }) => {
       <View style={styles.content}>
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>Enter Mobile Number</Text>
-          
+
           <View style={styles.phoneInputContainer}>
             <View style={styles.countryCode}>
               <Text style={styles.countryCodeText}>+91</Text>
@@ -154,23 +166,19 @@ const Login = ({ navigation }) => {
           <TouchableOpacity
             style={[
               styles.sendOTPButton,
-              (isButtonDisabled || loading) && styles.sendOTPButtonDisabled
+              (isButtonDisabled || loading) && styles.sendOTPButtonDisabled,
             ]}
             onPress={handleSendOTP}
-            disabled={isButtonDisabled || loading}
-          >
-            <Text style={[
-              styles.sendOTPButtonText,
-              (isButtonDisabled || loading) && styles.sendOTPButtonTextDisabled
-            ]}>
-              {loading ? 'Sending OTP...' : 'Send OTP'}
+            disabled={isButtonDisabled || loading}>
+            <Text
+              style={[
+                styles.sendOTPButtonText,
+                (isButtonDisabled || loading) &&
+                  styles.sendOTPButtonTextDisabled,
+              ]}>
+              {loading ? 'Sending OTP...' : 'Verify Number'}
             </Text>
           </TouchableOpacity>
-
-          {/* Info text - UPDATED */}
-          <Text style={styles.infoText}>
-            We'll send you a 6-digit verification code to verify your number
-          </Text>
         </View>
       </View>
     </KeyboardAvoidingView>

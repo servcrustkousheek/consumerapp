@@ -1,6 +1,6 @@
 import {Platform, PermissionsAndroid, Alert, Linking} from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
- 
+
 /*
  * Request location permission cross-platform (Android/iOS)
  * @param {boolean} enableBackground - request background location if needed
@@ -17,11 +17,11 @@ export async function requestLocationPermission(enableBackground = false) {
           buttonPositive: 'OK',
         },
       );
- 
+
       if (fine !== PermissionsAndroid.RESULTS.GRANTED) {
         return false;
       }
- 
+
       // Step 2: optionally request background permission (Android 10+)
       if (enableBackground && Platform.Version >= 29) {
         const bg = await PermissionsAndroid.request(
@@ -33,7 +33,7 @@ export async function requestLocationPermission(enableBackground = false) {
             buttonPositive: 'Open Settings',
           },
         );
- 
+
         if (bg !== PermissionsAndroid.RESULTS.GRANTED) {
           Alert.alert(
             'Background Permission Denied',
@@ -57,7 +57,7 @@ export async function requestLocationPermission(enableBackground = false) {
     return auth === 'granted' || auth === 'authorized';
   }
 }
- 
+
 /*
  * Get the user's current location
  * @param {object} options geolocation options
@@ -67,7 +67,7 @@ export async function getCurrentLocation(
 ) {
   const hasPerm = await requestLocationPermission();
   if (!hasPerm) return null;
- 
+
   return new Promise(resolve => {
     Geolocation.getCurrentPosition(
       pos =>
@@ -83,10 +83,10 @@ export async function getCurrentLocation(
     );
   });
 }
- 
+
 // Utils/olaMapsUrtils.js
 const OLA_API_KEY = 'alfWAECQqunPtTj6wxd5NUClwPKJybbtr6LvMaGK';
- 
+const GOOGLE_API_KEY = 'AIzaSyDVBU19npmqu3QOPGzVImtBt8kx_hbbwLY';
 /*
  * Fetches autocomplete suggestions from Ola Maps API
  * @param {string} input - The input text from search
@@ -94,14 +94,14 @@ const OLA_API_KEY = 'alfWAECQqunPtTj6wxd5NUClwPKJybbtr6LvMaGK';
  */
 export const fetchOlaAutocomplete = async input => {
   if (!input.trim()) return [];
- 
+
   try {
     const response = await fetch(
       `https://api.olamaps.io/places/v1/autocomplete?input=${encodeURIComponent(
         input,
       )}&api_key=${OLA_API_KEY}`,
     );
- 
+
     const data = await response.json();
     return data.predictions || [];
   } catch (error) {
@@ -109,7 +109,7 @@ export const fetchOlaAutocomplete = async input => {
     return [];
   }
 };
- 
+
 /*
  * Fetches detailed place info from Ola Maps API
  * @param {string} placeId - The place_id from autocomplete
@@ -120,20 +120,20 @@ export const fetchOlaPlaceDetails = async placeId => {
     const response = await fetch(
       `https://api.olamaps.io/places/v1/details?place_id=${placeId}&api_key=${OLA_API_KEY}`,
     );
- 
+
     const data = await response.json();
     const result = data.result || null;
     console.log(data, 'fetchOlaPlaceDetails');
- 
+
     if (!result) return null;
- 
+
     // Try to extract the formatted or full address
     const fullAddress =
       result.formatted_address ||
       result.display_address ||
       result.address ||
       '';
- 
+
     return {
       ...result,
       fullAddress,
@@ -143,27 +143,27 @@ export const fetchOlaPlaceDetails = async placeId => {
     return null;
   }
 };
- 
+
 export const fetchPlaceDetailsFromCoords = async (lat, lng, controller) => {
   try {
     const response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=AIzaSyDVBU19npmqu3QOPGzVImtBt8kx_hbbwLY`,
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_API_KEY}`,
       {signal: controller?.signal},
     );
- 
+
     const data = await response.json();
     console.log(data, 'fetchPlaceDetailsFromCoords');
- 
+
     if (data.status === 'OK' && data.results.length > 0) {
       const result = data.results[0];
- 
+
       return {
         name: result.formatted_address, // ✅ full readable address
         formatted_address: result.formatted_address,
         full_result: result, // optional: full raw response
       };
     }
- 
+
     return null;
   } catch (error) {
     if (error.name === 'AbortError') {
@@ -174,12 +174,12 @@ export const fetchPlaceDetailsFromCoords = async (lat, lng, controller) => {
     return null;
   }
 };
- 
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
- 
+
 // Key used for storing addresses
 const STORAGE_KEY = 'savedAddresses';
- 
+
 /*
  * Load saved addresses from AsyncStorage
  * @returns {Promise<Array>} An array of saved address objects or an empty array
@@ -193,25 +193,25 @@ export const loadSavedAddresses = async () => {
     return [];
   }
 };
- 
+
 /*
  * Helper: Calculate distance in meters between two lat/lng points using Haversine formula
  */
 const getDistanceInMeters = (lat1, lon1, lat2, lon2) => {
   const R = 6371000; // Earth radius in meters
   const toRad = value => (value * Math.PI) / 180;
- 
+
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
- 
+
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
- 
+
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };
- 
+
 /*
  * Save a new address to AsyncStorage if it's at least 10m away from all saved addresses
  * @param {Object} address - Address object with fullAddress, latitude, longitude
@@ -220,7 +220,7 @@ const getDistanceInMeters = (lat1, lon1, lat2, lon2) => {
 export const saveThisAddress = async address => {
   try {
     const currentAddresses = await loadSavedAddresses();
- 
+
     const isFarEnough = currentAddresses.every(item => {
       const distance = getDistanceInMeters(
         address.latitude,
@@ -230,30 +230,30 @@ export const saveThisAddress = async address => {
       );
       return distance >= 10;
     });
- 
+
     if (!isFarEnough) {
       console.log('Address is too close to an existing one. Not saved.');
       return currentAddresses;
     }
- 
+
     const newAddress = {
       id: Date.now().toString(),
       fullAddress: address.fullAddress,
       latitude: address.latitude,
       longitude: address.longitude,
     };
- 
+
     const updatedAddresses = [...currentAddresses, newAddress];
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAddresses));
     return updatedAddresses;
   } catch (err) {
     console.error('Failed to save address:', err);
     console.error('Failed to save address (details):', err, err.stack || '');
- 
+
     throw err;
   }
 };
- 
+
 export const deleteAddress = async id => {
   try {
     const currentAddresses = await loadSavedAddresses();

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {
   View,
   Text,
@@ -10,36 +10,42 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import { BRANDCOLOR, COLORS, C100 } from '../../Utils/Colors';
-import { verifyOTP, resendOTP, clearError, decrementTimer, clearNavigationFlag } from '../../redux/slices/AuthSlice';
+import {useDispatch, useSelector} from 'react-redux';
+import {BRANDCOLOR, COLORS, C100} from '../../Utils/Colors';
+import {
+  verifyOTP,
+  resendOTP,
+  clearError,
+  decrementTimer,
+  clearNavigationFlag,
+} from '../../redux/slices/AuthSlice';
 
-const OTPVerification = ({ navigation, route }) => {
+const OTPVerification = ({navigation, route}) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']); // Changed to 6 fields
   const inputs = useRef([]);
-  
+
   const dispatch = useDispatch();
-  const { 
-    loading, 
-    error, 
-    resendTimer, 
+  const {
+    loading,
+    error,
+    resendTimer,
     canResend,
     resendAttempts,
-    isAuthenticated 
+    isAuthenticated,
   } = useSelector(state => state.Auth);
-  
-  const { phoneNumber } = route.params || {};
+
+  const {phoneNumber} = route.params || {};
 
   // Timer countdown effect
   useEffect(() => {
     let interval = null;
-    
+
     if (resendTimer > 0) {
       interval = setInterval(() => {
         dispatch(decrementTimer());
       }, 1000);
     }
-    
+
     return () => {
       if (interval) clearInterval(interval);
     };
@@ -51,7 +57,7 @@ const OTPVerification = ({ navigation, route }) => {
       console.log('✅ Authentication successful, navigating to main app');
       navigation.reset({
         index: 0,
-        routes: [{ name: 'footer' }],
+        routes: [{name: 'footer'}],
       });
     }
   }, [isAuthenticated, navigation]);
@@ -76,18 +82,20 @@ const OTPVerification = ({ navigation, route }) => {
   const handleOtpChange = (text, index) => {
     // Only allow numeric input
     const numericText = text.replace(/[^0-9]/g, '');
-    
+
     const newOtp = [...otp];
     newOtp[index] = numericText;
     setOtp(newOtp);
 
     // Auto focus next input
-    if (numericText && index < 5) { // Changed from 4 to 5
+    if (numericText && index < 5) {
+      // Changed from 4 to 5
       inputs.current[index + 1]?.focus();
     }
-    
+
     // Auto submit when OTP is complete
-    if (numericText && index === 5) { // Changed from 4 to 5
+    if (numericText && index === 5) {
+      // Changed from 4 to 5
       const completeOtp = [...newOtp];
       if (completeOtp.every(digit => digit !== '')) {
         setTimeout(() => {
@@ -111,16 +119,17 @@ const OTPVerification = ({ navigation, route }) => {
 
   const handleVerifyOtp = async (otpCode = null) => {
     const otpToVerify = otpCode || otp.join('');
-    
-    if (otpToVerify.length !== 6) { // Changed from 5 to 6
+
+    if (otpToVerify.length !== 6) {
+      // Changed from 5 to 6
       Alert.alert('Error', 'Please enter complete 6-digit OTP'); // Updated message
       return;
     }
 
     console.log('🔐 Verifying OTP:', otpToVerify, 'for phone:', phoneNumber);
-    
+
     const result = await dispatch(verifyOTP(phoneNumber, otpToVerify));
-    
+
     if (!result.success) {
       console.log('❌ OTP verification failed, clearing inputs');
       // Clear OTP on error
@@ -136,13 +145,13 @@ const OTPVerification = ({ navigation, route }) => {
     }
 
     console.log('🔄 Resending OTP for:', phoneNumber);
-    
+
     // Clear current OTP
     setOtp(['', '', '', '', '', '']); // Changed to 6 fields
     inputs.current[0]?.focus();
-    
+
     const result = await dispatch(resendOTP(phoneNumber));
-    
+
     if (result.success) {
       Alert.alert('Success', 'OTP has been resent to your phone number');
     }
@@ -170,7 +179,7 @@ const OTPVerification = ({ navigation, route }) => {
   const isOtpComplete = otp.every(digit => digit !== '');
 
   // Format timer display
-  const formatTimer = (seconds) => {
+  const formatTimer = seconds => {
     if (seconds >= 60) {
       const mins = Math.floor(seconds / 60);
       const secs = seconds % 60;
@@ -180,7 +189,7 @@ const OTPVerification = ({ navigation, route }) => {
   };
 
   // Mask phone number for display (e.g., +91******3505)
-  const maskPhoneNumber = (phone) => {
+  const maskPhoneNumber = phone => {
     if (phone && phone.length > 6) {
       const country = phone.substring(0, 3); // +91
       const lastFour = phone.slice(-4); // last 4 digits
@@ -191,19 +200,17 @@ const OTPVerification = ({ navigation, route }) => {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <StatusBar backgroundColor={COLORS.white} barStyle="dark-content" />
-      
+
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={handleGoBack}
-          disabled={loading}
-        >
+          disabled={loading}>
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
       </View>
@@ -213,14 +220,15 @@ const OTPVerification = ({ navigation, route }) => {
         <Text style={styles.title}>Verification Code</Text>
         <View style={styles.subtitleContainer}>
           <Text style={styles.subtitle}>
-            We sent a 6-digit code to{' '} {/* Updated text */}
-            <Text style={styles.phoneNumber}>{maskPhoneNumber(phoneNumber)}</Text>
+            We sent a 6-digit code to {/* Updated text */}
+            <Text style={styles.phoneNumber}>
+              {maskPhoneNumber(phoneNumber)}
+            </Text>
           </Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={handleEditPhoneNumber}
             disabled={loading}
-            style={styles.editButton}
-          >
+            style={styles.editButton}>
             <Text style={styles.editButtonText}>Edit</Text>
           </TouchableOpacity>
         </View>
@@ -230,15 +238,15 @@ const OTPVerification = ({ navigation, route }) => {
           {otp.map((digit, index) => (
             <TextInput
               key={index}
-              ref={ref => inputs.current[index] = ref}
+              ref={ref => (inputs.current[index] = ref)}
               style={[
                 styles.otpInput,
                 digit && styles.otpInputFilled,
-                loading && styles.otpInputDisabled
+                loading && styles.otpInputDisabled,
               ]}
               value={digit}
-              onChangeText={(text) => handleOtpChange(text, index)}
-              onKeyPress={(e) => handleKeyPress(e, index)}
+              onChangeText={text => handleOtpChange(text, index)}
+              onKeyPress={e => handleKeyPress(e, index)}
               keyboardType="numeric"
               maxLength={1}
               textAlign="center"
@@ -252,15 +260,15 @@ const OTPVerification = ({ navigation, route }) => {
         <TouchableOpacity
           style={[
             styles.verifyButton,
-            (!isOtpComplete || loading) && styles.verifyButtonDisabled
+            (!isOtpComplete || loading) && styles.verifyButtonDisabled,
           ]}
           onPress={() => handleVerifyOtp()}
-          disabled={!isOtpComplete || loading}
-        >
-          <Text style={[
-            styles.verifyButtonText,
-            (!isOtpComplete || loading) && styles.verifyButtonTextDisabled
-          ]}>
+          disabled={!isOtpComplete || loading}>
+          <Text
+            style={[
+              styles.verifyButtonText,
+              (!isOtpComplete || loading) && styles.verifyButtonTextDisabled,
+            ]}>
             {loading ? 'Verifying...' : 'Verify & Continue'}
           </Text>
         </TouchableOpacity>
@@ -268,19 +276,18 @@ const OTPVerification = ({ navigation, route }) => {
         {/* Resend Code Section */}
         <View style={styles.resendContainer}>
           <Text style={styles.resendText}>Didn't receive the code?</Text>
-          <TouchableOpacity 
-            onPress={handleResendCode} 
+          <TouchableOpacity
+            onPress={handleResendCode}
             disabled={!canResend || loading}
-            style={styles.resendButton}
-          >
-            <Text style={[
-              styles.resendLink,
-              (!canResend || loading) && styles.resendLinkDisabled
-            ]}>
-              {canResend && !loading 
-                ? 'Resend code' 
-                : `Resend code in ${formatTimer(resendTimer)}`
-              }
+            style={styles.resendButton}>
+            <Text
+              style={[
+                styles.resendLink,
+                (!canResend || loading) && styles.resendLinkDisabled,
+              ]}>
+              {canResend && !loading
+                ? 'Resend code'
+                : `Resend code in ${formatTimer(resendTimer)}`}
             </Text>
           </TouchableOpacity>
         </View>
@@ -293,13 +300,6 @@ const OTPVerification = ({ navigation, route }) => {
             </Text>
           </View>
         )}
-
-        {/* Help text */}
-        <View style={styles.helpContainer}>
-          <Text style={styles.helpText}>
-            Having trouble? Check your network connection or contact support.
-          </Text>
-        </View>
       </View>
     </KeyboardAvoidingView>
   );

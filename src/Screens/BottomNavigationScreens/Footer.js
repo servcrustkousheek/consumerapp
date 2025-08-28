@@ -15,14 +15,14 @@ import Header from '../../Components/Header';
 const Tab = createBottomTabNavigator();
 
 const ICON_URLS = {
-  priceanalysis:
+  Orders:
     'https://d3b1cj4ht2fm8t.cloudfront.net/staging/marketing+and+sales+app/priceanalysis.svg',
-  b2cleads:
+  Rewards:
     'https://d3b1cj4ht2fm8t.cloudfront.net/staging/marketing+and+sales+app/b2cleads.svg',
   //dashboard: 'https://d3b1cj4ht2fm8t.cloudfront.net/staging/SC-P+V2/Dashboard.svg',
-  performance:
+  Referrals:
     'https://d3b1cj4ht2fm8t.cloudfront.net/staging/marketing+and+sales+app/performance.svg',
-  villagefinder:
+  Profile:
     'https://d3b1cj4ht2fm8t.cloudfront.net/staging/marketing+and+sales+app/locationfilled.svg',
 };
 
@@ -110,10 +110,10 @@ const Footer = () => {
           name="Orders"
           component={Orders}
           options={{
-            title: 'orders',
+            title: 'Orders',
             tabBarIcon: ({focused}) => (
               <ColorableSvgIcon
-                url={ICON_URLS.priceanalysis}
+                url={ICON_URLS.Orders}
                 color={focused ? '#fff' : 'rgba(255,255,255,0.6)'}
                 style={{width: 24, height: 24}}
               />
@@ -124,10 +124,10 @@ const Footer = () => {
           name="Rewards"
           component={Rewards}
           options={{
-            title: 'rewards',
+            title: 'Rewards',
             tabBarIcon: ({focused}) => (
               <ColorableSvgIcon
-                url={ICON_URLS.b2cleads}
+                url={ICON_URLS.Rewards}
                 color={focused ? '#fff' : 'rgba(255,255,255,0.6)'}
                 style={{width: 24, height: 24}}
               />
@@ -160,10 +160,10 @@ const Footer = () => {
           name="Referrals"
           component={Referrals}
           options={{
-            title: 'Track',
+            title: 'Referrals',
             tabBarIcon: ({focused}) => (
               <ColorableSvgIcon
-                url={ICON_URLS.performance}
+                url={ICON_URLS.Referrals}
                 color={focused ? '#fff' : 'rgba(255,255,255,0.6)'}
                 style={{width: 24, height: 24}}
               />
@@ -174,10 +174,10 @@ const Footer = () => {
           name="Profile"
           component={Profile}
           options={{
-            title: 'Track',
+            title: 'Profile',
             tabBarIcon: ({focused}) => (
               <ColorableSvgIcon
-                url={ICON_URLS.villagefinder}
+                url={ICON_URLS.Profile}
                 color={focused ? '#fff' : 'rgba(255,255,255,0.6)'}
                 style={{width: 24, height: 24}}
               />

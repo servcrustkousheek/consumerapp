@@ -1,23 +1,18 @@
-import { View, Text, StyleSheet, StatusBar, Image, Platform } from 'react-native';
-import React, { useEffect } from 'react';
-import { BRANDCOLOR, COLORS } from '../../Utils/Colors';
-import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../../Utils/Dimensions';
-import { SvgUri } from 'react-native-svg';
-import SpInAppUpdates, {
-
-  IAUUpdateKind,
-
-} from 'sp-react-native-in-app-updates';
+import {View, Text, StyleSheet, StatusBar, Image, Platform} from 'react-native';
+import React, {useEffect} from 'react';
+import {BRANDCOLOR, COLORS} from '../../Utils/Colors';
+import {SCREEN_HEIGHT, SCREEN_WIDTH} from '../../Utils/Dimensions';
+import {SvgUri} from 'react-native-svg';
+import SpInAppUpdates, {IAUUpdateKind} from 'sp-react-native-in-app-updates';
 import DeviceInfo from 'react-native-device-info';
 
 const SplashScreen = () => {
   const appVersion = DeviceInfo.getVersion();
 
-
   useEffect(() => {
     const inAppUpdates = new SpInAppUpdates(false);
     inAppUpdates
-      .checkNeedsUpdate({ curVersion: appVersion })
+      .checkNeedsUpdate({curVersion: appVersion})
       .then(result => {
         if (result.shouldUpdate) {
           let updateOptions = {};
@@ -35,7 +30,6 @@ const SplashScreen = () => {
       });
   }, [appVersion]);
 
-
   return (
     <>
       <StatusBar backgroundColor={BRANDCOLOR} barStyle="light-content" />
@@ -52,7 +46,7 @@ const SplashScreen = () => {
         </View>
 
         {/* M&S Text */}
-        <Text style={styles.msText}>M&S</Text>
+        <Text style={styles.msText}>Consumer App</Text>
       </View>
     </>
   );

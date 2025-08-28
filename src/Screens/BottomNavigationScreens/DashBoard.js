@@ -1,11 +1,11 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {setLocationData} from '../../redux/slices/HeaderSlice';
 import {
   getCurrentLocation,
   fetchPlaceDetailsFromCoords,
 } from '../../Utils/geolocationUtils';
- 
+
 import {
   View,
   Text,
@@ -16,59 +16,58 @@ import {
   FlatList,
   Image,
   ScrollView,
+  Button,
+  Alert,
 } from 'react-native';
- 
+import {SCREEN_HEIGHT} from '../../Utils/Dimensions';
+import AggregatesComponent from '../../pages/Dashboard/AggregatesComponent';
+import RMCComponent from '../../pages/Dashboard/RMCComponent';
+import BricksComponent from '../../pages/Dashboard/BricksComponent';
+import AggregateFlow from '../../pages/Dashboard/AggregateFlow';
+import BricksFlow from '../../pages/Dashboard/BricksFlow';
+
 const categories = [
   {id: '1', name: 'Aggregates', icon: 'IconPlaceholder1'},
   {id: '2', name: 'Bricks', icon: 'IconPlaceholder2'},
   {id: '3', name: 'RMC', icon: 'IconPlaceholder3'},
 ];
- 
-const popularProducts = [
-  {
-    id: 'p1',
-    name: '6mm Stone Aggregates',
-    desc: 'Often used in projects like dams and retaining walls.',
-    image:
-      'https://images.unsplash.com/photo-1579102787339-c5820ab1ed53?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 'p2',
-    name: '12mm Stone Aggregates',
-    desc: 'Often used in projects like dams and retaining walls.',
-    image:
-      'https://images.unsplash.com/photo-1579102787327-2ffbad110de1?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 'p3',
-    name: '6mm Stone Aggregates',
-    desc: 'Often used in projects like dams and retaining walls.',
-    image:
-      'https://images.unsplash.com/photo-1579102787339-c5820ab1ed53?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 'p4',
-    name: '40mm Stone Aggregates',
-    desc: 'Often used in projects like dams and retaining walls.',
-    image:
-      'https://images.unsplash.com/photo-1590080877777-64f3fac5b682?auto=format&fit=crop&w=400&q=80',
-  },
-];
- 
+
 const Dashboard = () => {
   const dispatch = useDispatch();
   const location = useSelector(state => state.Header.location);
- 
+
+  // State for managing selected category, search, and filters
+  const [selectedCategory, setSelectedCategory] = useState('1'); // Default to Aggregates
+  const [searchText, setSearchText] = useState('');
+  const [filters, setFilters] = useState({
+    priceRange: '',
+    availability: '',
+    brand: '',
+    // Add more filter properties as needed
+  });
+
+  // Selected products per category
+  const [selectedAggregateProduct, setSelectedAggregateProduct] =
+    useState(null);
+  const [selectedBricksProduct, setSelectedBricksProduct] = useState(null);
+  const [selectedRMCProduct, setSelectedRMCProduct] = useState(null);
+
+  // Modals visibility
+  const [showAggregateModal, setShowAggregateModal] = useState(false);
+  const [showBricksModal, setShowBricksModal] = useState(false);
+  const [showRMCModal, setShowRMCModal] = useState(false);
+
   useEffect(() => {
     const initLoc = async () => {
       try {
-        // Only fetch current location if none saved yet
         if (
           !location ||
           !location.latitude ||
           !location.longitude ||
           location.address === 'Location Unavailable !'
         ) {
+          const controller = new AbortController(); // ✅ create controller
+
           const coords = await getCurrentLocation({
             enableHighAccuracy: false,
             timeout: 20000,
@@ -77,13 +76,14 @@ const Dashboard = () => {
           const place = await fetchPlaceDetailsFromCoords(
             coords.latitude,
             coords.longitude,
+            controller,
           );
           const locationObj = {
             latitude: coords.latitude,
             longitude: coords.longitude,
             address:
               place?.name || place?.formatted_address || 'Current Location',
-            isServiceable: false, // or insert your business logic here
+            isServiceable: true,
           };
           dispatch(setLocationData(locationObj));
         }
@@ -91,98 +91,184 @@ const Dashboard = () => {
         console.warn('Failed to fetch location:', err);
       }
     };
- 
+
     initLoc();
   }, [dispatch, location]);
- 
+
+  const handleCategorySelect = categoryId => {
+    setSelectedCategory(categoryId);
+  };
+
+  const handleFilterPress = () => {
+    // Open filter modal or bottom sheet
+    console.log('Open filters');
+  };
+
+  // Reset all products and modals except current
+  const clearOtherSelections = category => {
+    if (category !== '1') {
+      setSelectedAggregateProduct(null);
+      setShowAggregateModal(false);
+    }
+    if (category !== '2') {
+      setSelectedBricksProduct(null);
+      setShowBricksModal(false);
+    }
+    if (category !== '3') {
+      setSelectedRMCProduct(null);
+      setShowRMCModal(false);
+    }
+  };
+
+  // Handlers per category
+  const handleBuyAggregates = product => {
+    clearOtherSelections('1');
+    setSelectedAggregateProduct(product);
+    setShowAggregateModal(true);
+    // Custom logic for Aggregates buy flow
+  };
+
+  const handleBuyBricks = product => {
+    clearOtherSelections('2');
+    setSelectedBricksProduct(product);
+    setShowBricksModal(true);
+    // Custom logic for Bricks buy flow
+  };
+
+  const handleBuyRMC = product => {
+    clearOtherSelections('3');
+    setSelectedRMCProduct(product);
+    setShowRMCModal(true);
+    // Custom logic for RMC buy flow
+  };
+
+  const renderCategoryComponent = () => {
+    if (!selectedCategory) return null;
+
+    const commonProps = {
+      searchText,
+      filters,
+    };
+
+    switch (selectedCategory) {
+      case '1':
+        return (
+          <AggregatesComponent {...commonProps} onBuy={handleBuyAggregates} />
+        );
+      case '2':
+        return <BricksComponent {...commonProps} onBuy={handleBuyBricks} />;
+      case '3':
+        return <RMCComponent {...commonProps} onBuy={handleBuyRMC} />;
+      default:
+        return null;
+    }
+  };
+
+  // Main dashboard view
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{paddingBottom: 30}}>
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          placeholder="Search Materials..."
-          style={styles.searchInput}
-          placeholderTextColor="#999"
-        />
-        <TouchableOpacity style={styles.filterButton}>
-          {/* Replace below with your SVG filter icon */}
-          <View style={styles.iconPlaceholder} />
+    <>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{paddingBottom: 30}}>
+        <TouchableOpacity
+          onPress={() => {
+            setShowAggregateModal(true);
+          }}>
+          <Text>Hello</Text>
         </TouchableOpacity>
-      </View>
- 
-      {/* Discount Banner */}
-      <TouchableOpacity activeOpacity={0.8} style={styles.bannerContainer}>
-        <ImageBackground
-          source={{
-            uri: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
-          }}
-          style={styles.bannerImage}
-          imageStyle={{borderRadius: 14}}>
-          <View style={styles.bannerOverlay}>
-            <Text style={styles.discountTitle}>Get 10% Discount</Text>
-            <Text style={styles.discountSubtitle}>From Every order</Text>
-          </View>
-          <Text style={styles.bannerLabel}>Special for you</Text>
-        </ImageBackground>
-      </TouchableOpacity>
- 
-      {/* Categories */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Categories</Text>
-        <View style={styles.categoriesRow}>
-          {categories.map(cat => (
-            <TouchableOpacity
-              key={cat.id}
-              style={styles.categoryItem}
-              activeOpacity={0.7}>
-              <View style={styles.categoryIcon}>
-                {/* Replace with your SVG icon */}
-                <View style={styles.iconPlaceholder} />
-              </View>
-              <Text style={styles.categoryName}>{cat.name}</Text>
-            </TouchableOpacity>
-          ))}
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <TextInput
+            placeholder="Search Materials..."
+            style={styles.searchInput}
+            placeholderTextColor="#999"
+            value={searchText}
+            onChangeText={setSearchText}
+          />
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={handleFilterPress}>
+            <View style={styles.iconPlaceholder} />
+          </TouchableOpacity>
         </View>
-      </View>
- 
-      {/* Popular Products */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Popular Products</Text>
-        <FlatList
-          data={popularProducts}
-          keyExtractor={item => item.id}
-          numColumns={2}
-          scrollEnabled={false}
-          columnWrapperStyle={{
-            justifyContent: 'space-between',
-            marginBottom: 20,
-          }}
-          renderItem={({item}) => (
-            <View style={styles.productCard}>
-              <Image
-                source={{uri: item.image}}
-                style={styles.productImage}
-                resizeMode="cover"
-              />
-              <Text style={styles.productName} numberOfLines={1}>
-                {item.name}
-              </Text>
-              <Text style={styles.productDesc} numberOfLines={2}>
-                {item.desc}
-              </Text>
-              <TouchableOpacity style={styles.buyButton} activeOpacity={0.8}>
-                <Text style={styles.buyBtnText}>Buy</Text>
-              </TouchableOpacity>
+
+        {/* Discount Banner */}
+        <TouchableOpacity activeOpacity={0.8} style={styles.bannerContainer}>
+          <ImageBackground
+            source={{
+              uri: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
+            }}
+            style={styles.bannerImage}
+            imageStyle={{borderRadius: 14}}>
+            <View style={styles.bannerOverlay}>
+              <Text style={styles.discountTitle}>Get 10% Discount</Text>
+              <Text style={styles.discountSubtitle}>From Every order</Text>
             </View>
-          )}
+            <Text style={styles.bannerLabel}>Special for you</Text>
+          </ImageBackground>
+        </TouchableOpacity>
+
+        {/* Categories */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Categories</Text>
+          <View style={styles.categoriesRow}>
+            {categories.map(cat => (
+              <TouchableOpacity
+                key={cat.id}
+                style={[
+                  styles.categoryItem,
+                  selectedCategory === cat.id && styles.categoryItemSelected,
+                ]}
+                activeOpacity={0.7}
+                onPress={() => handleCategorySelect(cat.id)}>
+                <View
+                  style={[
+                    styles.categoryIcon,
+                    selectedCategory === cat.id && styles.categoryIconSelected,
+                  ]}>
+                  <View style={styles.iconPlaceholder} />
+                </View>
+                <Text
+                  style={[
+                    styles.categoryName,
+                    selectedCategory === cat.id && styles.categoryNameSelected,
+                  ]}>
+                  {cat.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Selected Category Component */}
+        {renderCategoryComponent()}
+
+        <View style={{height: SCREEN_HEIGHT * 0.3}} />
+      </ScrollView>
+
+      {showAggregateModal && (
+        <AggregateFlow
+          visible={showAggregateModal}
+          onClose={() => {
+            setShowAggregateModal(false);
+          }}
+          selectedAggregate={selectedAggregateProduct.name}
         />
-      </View>
-    </ScrollView>
+      )}
+
+      {showBricksModal && (
+        <BricksFlow
+          visible={showBricksModal}
+          onClose={() => {
+            setShowBricksModal(false);
+          }}
+          selectedBrick={selectedBricksProduct.name}
+        />
+      )}
+    </>
   );
 };
- 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -218,7 +304,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#ccc',
     borderRadius: 4,
   },
- 
   bannerContainer: {
     height: 160,
     marginBottom: 25,
@@ -257,7 +342,6 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     marginBottom: 8,
   },
- 
   section: {
     marginBottom: 30,
   },
@@ -275,6 +359,9 @@ const styles = StyleSheet.create({
     width: 90,
     alignItems: 'center',
   },
+  categoryItemSelected: {
+    transform: [{scale: 1.05}],
+  },
   categoryIcon: {
     width: 60,
     height: 60,
@@ -284,23 +371,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
+  categoryIconSelected: {
+    backgroundColor: '#16968b',
+  },
   categoryName: {
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
     textAlign: 'center',
   },
- 
+  categoryNameSelected: {
+    color: '#16968b',
+    fontWeight: '700',
+  },
   productCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
     width: '48%',
-    // Shadow (iOS)
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.1,
     shadowRadius: 6,
-    // Shadow (Android)
     elevation: 3,
     paddingBottom: 15,
   },
@@ -337,6 +428,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
- 
+
 export default Dashboard;
- 
