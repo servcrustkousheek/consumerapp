@@ -1,7 +1,7 @@
-import { View, Text, StyleSheet, Platform } from 'react-native';
-import React, { useState, useEffect } from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Svg, Path, G, SvgUri } from 'react-native-svg';
+import {View, Text, StyleSheet, Platform} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {Svg, Path, G, SvgUri} from 'react-native-svg';
 
 import axios from 'axios';
 import CustomButton from '../../Components/CustomButton';
@@ -10,24 +10,24 @@ import Rewards from './Rewards';
 import DashBoard from './DashBoard';
 import Referrals from './Referrals';
 import Profile from './Profile';
+import Header from '../../Components/Header';
 
 const Tab = createBottomTabNavigator();
 
-
 const ICON_URLS = {
-  priceanalysis:
+  Orders:
     'https://d3b1cj4ht2fm8t.cloudfront.net/staging/marketing+and+sales+app/priceanalysis.svg',
-  b2cleads:
+  Rewards:
     'https://d3b1cj4ht2fm8t.cloudfront.net/staging/marketing+and+sales+app/b2cleads.svg',
   //dashboard: 'https://d3b1cj4ht2fm8t.cloudfront.net/staging/SC-P+V2/Dashboard.svg',
-  performance:
+  Referrals:
     'https://d3b1cj4ht2fm8t.cloudfront.net/staging/marketing+and+sales+app/performance.svg',
-  villagefinder:
+  Profile:
     'https://d3b1cj4ht2fm8t.cloudfront.net/staging/marketing+and+sales+app/locationfilled.svg',
 };
 
 // Custom component that fetches and renders SVG with color override
-const ColorableSvgIcon = ({ url, color, style }) => {
+const ColorableSvgIcon = ({url, color, style}) => {
   const [svgContent, setSvgContent] = useState(null);
 
   useEffect(() => {
@@ -75,15 +75,14 @@ const ColorableSvgIcon = ({ url, color, style }) => {
   );
 };
 
-
-
 const Footer = () => {
   return (
     <>
       <Tab.Navigator
         initialRouteName="dashboard"
-        screenOptions={({ navigation, route }) => ({
-          headerShown: false,
+        screenOptions={({navigation, route}) => ({
+          // headerShown: false,
+          header: () => <Header route={route} navigation={navigation} />,
           tabBarActiveTintColor: '#fff',
           tabBarInactiveTintColor: 'rgba(255,255,255,0.6)',
           tabBarHideOnKeyboard: true,
@@ -104,19 +103,19 @@ const Footer = () => {
           tabBarLabelStyle: {
             fontSize: 12,
             marginTop: Platform.OS === 'ios' ? 3 : 0,
-            marginBottom: Platform.OS === 'ios' ? 0 : 4
+            marginBottom: Platform.OS === 'ios' ? 0 : 4,
           },
         })}>
         <Tab.Screen
           name="Orders"
           component={Orders}
           options={{
-            title: 'orders',
-            tabBarIcon: ({ focused }) => (
+            title: 'Orders',
+            tabBarIcon: ({focused}) => (
               <ColorableSvgIcon
-                url={ICON_URLS.priceanalysis}
+                url={ICON_URLS.Orders}
                 color={focused ? '#fff' : 'rgba(255,255,255,0.6)'}
-                style={{ width: 24, height: 24 }}
+                style={{width: 24, height: 24}}
               />
             ),
           }}
@@ -125,17 +124,16 @@ const Footer = () => {
           name="Rewards"
           component={Rewards}
           options={{
-            title: 'rewards',
-            tabBarIcon: ({ focused }) => (
+            title: 'Rewards',
+            tabBarIcon: ({focused}) => (
               <ColorableSvgIcon
-                url={ICON_URLS.b2cleads}
+                url={ICON_URLS.Rewards}
                 color={focused ? '#fff' : 'rgba(255,255,255,0.6)'}
-                style={{ width: 24, height: 24 }}
+                style={{width: 24, height: 24}}
               />
             ),
           }}
         />
-       
 
         <Tab.Screen
           name="dashboard"
@@ -162,12 +160,12 @@ const Footer = () => {
           name="Referrals"
           component={Referrals}
           options={{
-            title: 'Track',
-            tabBarIcon: ({ focused }) => (
+            title: 'Referrals',
+            tabBarIcon: ({focused}) => (
               <ColorableSvgIcon
-                url={ICON_URLS.performance}
+                url={ICON_URLS.Referrals}
                 color={focused ? '#fff' : 'rgba(255,255,255,0.6)'}
-                style={{ width: 24, height: 24 }}
+                style={{width: 24, height: 24}}
               />
             ),
           }}
@@ -176,18 +174,17 @@ const Footer = () => {
           name="Profile"
           component={Profile}
           options={{
-            title: 'Track',
-            tabBarIcon: ({ focused }) => (
+            title: 'Profile',
+            tabBarIcon: ({focused}) => (
               <ColorableSvgIcon
-                url={ICON_URLS.villagefinder}
+                url={ICON_URLS.Profile}
                 color={focused ? '#fff' : 'rgba(255,255,255,0.6)'}
-                style={{ width: 24, height: 24 }}
+                style={{width: 24, height: 24}}
               />
             ),
           }}
         />
       </Tab.Navigator>
-
     </>
   );
 };
